@@ -1,7 +1,9 @@
 ---
 title: Network Enumeration
-date: 2025-01-10 20:00:00 -500
-categories: [Enumeration, Network]
+author: jrg1a
+#date: 2025-01-10 20:00:00 -500
+render_with_liquid: false
+categories: [Red Team]
 tags: [scanning, nmap, ports, recon, network, ip, ping, enumeration]
 ---
 
