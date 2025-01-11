@@ -1,15 +1,42 @@
 ---
-title: Network Enumeration
-author: jrg1a
-#date: 2025-01-10 20:00:00 -500
-render_with_liquid: false
-categories: [Red Team]
-tags: [scanning, nmap, ports, recon, network, ip, ping, enumeration]
+title: Nmap - Network Enumeration
+date: 2025-01-11 20:00:00 +0100
+categories: [Red Team, Network]
+tags: [nmap, ports, ip, scanning, protocols]     # TAG names should always be lowercase
 ---
 
-# Scanning
 
 # Nmap - Network Enumeration
+> Nmap is a powerful network scanning tool that can be used to discover hosts and services on a computer network, thus creating a "map" of the network. It is an essential tool for network administrators and security professionals to assess the security posture of a network.
+
+This is just a quick overview of some notes i have written about Nmap. Nmap is a powerful tool that can be used to discover hosts and services on a computer network. It is an essential tool for network administrators and security professionals to assess the security posture of a network.
+
+### Basic Scanning Techniques
+
+#### Host Discovery
+- `Ping Scan:` Nmap uses ICMP echo requests to determine if a host is up. This is the default scan when Nmap is run as a regular user.
+- `TCP SYN Scan:` Nmap sends a SYN packet to the target host and waits for a response. If a SYN/ACK packet is received, the port is considered open.
+- `TCP Connect Scan:` Nmap establishes a full TCP connection with the target host to determine if the port is open. This scan is slower than a SYN scan but is less likely to be detected by intrusion detection systems.
+- `UDP Scan:` Nmap sends UDP packets to the target host to determine if a UDP service is running on the port. UDP scans are slower than TCP scans and may not always provide accurate results.
+- `SCTP Scan:` Nmap sends SCTP packets to the target host to determine if an SCTP service is running on the port. SCTP scans are less common than TCP and UDP scans.
+- `ICMP Echo Scan:` Nmap sends ICMP echo requests to the target host to determine if it is up. This scan is similar to a ping scan but uses ICMP echo requests instead of ICMP echo replies.
+- `ACK Scan:` Nmap sends an ACK packet to the target host and waits for a response. If an RST packet is received, the port is considered closed.
+- - `SYN Scan:` Nmap sends a SYN packet to the target host and waits for a response. If a SYN/ACK packet is received, the port is considered open.
+- `FIN Scan:` Nmap sends a FIN packet to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+
+- `Window Scan:` Nmap sends a packet with a specific window size to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+- `Maimon Scan:` Nmap sends a packet with the FIN, URG, and PSH flags set to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+- `Xmas Scan:` Nmap sends a packet with the FIN, URG, and PSH flags set to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+- `Null Scan:` Nmap sends a packet with no flags set to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+- `Idle Scan:` Nmap uses a third-party host (zombie) to scan the target host. This scan is less likely to be detected by intrusion detection systems.
+- `FTP Bounce Scan:` Nmap sends a PORT command to an FTP server to determine if the port is open. This scan is less common than other scanning techniques.
+- `Fragmentation Scan:` Nmap sends fragmented packets to the target host to determine if the port is open. This scan is less common than other scanning techniques.
+
+The syntax for your Nmap command should be as follows:
+```bash
+nmap [scan type] [options] [target]
+```
+
 
 ### Port States
 

